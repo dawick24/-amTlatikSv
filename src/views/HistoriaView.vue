@@ -36,7 +36,7 @@
             @click="showDetail(historia.id)"
           >
             <div class="historia-img">
-              <img :src="getImageUrl(historia.imagen)" :alt="historia.titulo">
+              <img :src="historia.imagen" :alt="historia.titulo">
             </div>
             <div class="historia-content">
               <div class="historia-title">{{ historia.titulo }}</div>
@@ -51,7 +51,7 @@
         <!-- Vista de detalle -->
         <div v-if="showDetailView" class="detalle">
           <img 
-            :src="getImageUrl(currentHistoria.imagen)" 
+            :src="currentHistoria.imagen" 
             :alt="currentHistoria.titulo" 
             class="detalle-img"
           >
@@ -78,19 +78,19 @@ const historias = ref([
   {
     id: 1,
     titulo: "Pupusas",
-    imagen: "pupusas.jpg",
+    imagen: "/pupusas.jpeg",
     descripcion: "Las pupusas son uno de los símbolos culinarios más representativos de El Salvador. Su origen se remonta a los pueblos pipiles, quienes preparaban masas de maíz rellenas de ingredientes locales como frijoles, loroco y calabaza. Con el paso del tiempo, se incorporaron rellenos como queso, chicharrón y otros. Tradicionalmente cocinadas sobre comales de barro, las pupusas reflejan la fusión entre la cultura indígena y las influencias coloniales. Hoy en día, son patrimonio cultural y se celebran en ferias y festivales a lo largo del país. El proceso de preparación ha pasado de generación en generación, manteniendo vivo el conocimiento ancestral en la cocina salvadoreña."
   },
   {
     id: 2,
-    titulo: "Tamal de Gallina",
-    imagen: "tamal.jpg",
-    descripcion: "El tamal de gallina es una delicia que combina técnicas culinarias precolombinas con ingredientes introducidos durante la colonia. Su preparación incluye masa de maíz sazonada con caldo, rellena con gallina, papas, garbanzos, aceitunas, y envuelta cuidadosamente en hojas de plátano. Cocido lentamente al vapor, su sabor profundo y su textura suave lo convierten en un platillo infaltable en celebraciones familiares y festividades religiosas. Esta receta tradicional ha sido transmitida de generación en generación, conservando el sabor de antaño. Su importancia no solo es gastronómica, sino también social, ya que en muchas comunidades los tamales son elaborados de manera colectiva."
+    titulo: "Montucas",
+    imagen: "/montacua.jpg",
+    descripcion: "Las montucas son una variante ancestral del tamal, preparadas a base de maíz tierno. Su sabor es dulce y suave, resultado de las costumbres indígenas de aprovechar el maíz en todas sus etapas. Eran comunes en celebraciones familiares y se preparaban con ingredientes sencillos."
   },
   {
     id: 3,
     titulo: "Nuégados",
-    imagen: "nuegados.jpg",
+    imagen: "nuegados.jpeg",
     descripcion: "Los nuégados son un postre típico salvadoreño, especialmente presente en las ferias y pueblos del interior. Elaborados con yuca rallada o masa de maíz, se fríen hasta quedar dorados y crujientes, para luego bañarse en una dulce miel de panela aromatizada con canela y clavo. Su origen está ligado a la creatividad de las cocineras rurales, quienes aprovechaban ingredientes sencillos para crear delicias irresistibles. El contraste entre lo crujiente del nuégado y lo espeso de la miel los convierte en una experiencia culinaria nostálgica y profundamente tradicional. Se considera un símbolo de la repostería artesanal de El Salvador."
   }
 ]);

@@ -4,7 +4,7 @@ import Header from './components/Header.vue'
 </script>
 
 <template>
-  <Header />
+  <Header  v-if="$route.name !== 'login'" />
   <RouterView />
 </template>
 

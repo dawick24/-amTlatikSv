@@ -1,111 +1,113 @@
 <template>
-  <div class="main-container">
-    <!-- Sección Izquierda -->
-    <div class="login-left">
-      <button class="back-button" @click="goBack">
-        <i class="fas fa-arrow-left"></i> Atrás
-      </button>
-      <img src="/logo.png" alt="Logo Ñam Tlatik" class="login-logo" />
-      <div class="welcome-message">
-        <h2>Bienvenido de vuelta</h2>
-        <p>Inicia sesión para acceder a tu cuenta</p>
-      </div>
-    </div>
-
-    <!-- Sección Derecha -->
-    <div class="login-right">
-      <h1 class="login-title">Iniciar Sesión</h1>
-
-      <form class="login-form" @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="usuario">Usuario o Email</label>
-          <input 
-            type="text" 
-            id="usuario" 
-            v-model="loginForm.usuario"
-            :class="{ error: errors.usuario }"
-            required 
-          />
-          <span v-if="errors.usuario" class="error-message">{{ errors.usuario }}</span>
-        </div>
-
-        <div class="form-group">
-          <label for="contrasena">Contraseña</label>
-          <input 
-            type="password" 
-            id="contrasena" 
-            v-model="loginForm.contrasena"
-            :class="{ error: errors.contrasena }"
-            required 
-          />
-          <span v-if="errors.contrasena" class="error-message">{{ errors.contrasena }}</span>
-        </div>
-
-        <div class="form-options">
-          <div class="remember-me">
-            <input 
-              type="checkbox" 
-              id="remember" 
-              v-model="loginForm.remember"
-            />
-            <label for="remember">Recordarme</label>
-          </div>
-          <a href="#" class="forgot-password" @click.prevent="showForgotPassword = true">
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div>
-
-        <button type="submit" class="btn-login" :disabled="isLoading">
-          {{ isLoading ? 'Iniciando...' : 'Iniciar Sesión' }}
+  <div class="login-root">
+    <div class="main-container">
+      <!-- Sección Izquierda -->
+      <div class="login-left">
+        <button class="back-button" @click="goBack">
+          <i class="fas fa-arrow-left"></i> Atrás
         </button>
-
-        <div v-if="generalError" class="error-message" style="text-align: center; margin-top: 10px;">
-          {{ generalError }}
+        <img src="/logo.png" alt="Logo Ñam Tlatik" class="login-logo" />
+        <div class="welcome-message">
+          <h2>Bienvenido de vuelta</h2>
+          <p>Inicia sesión para acceder a tu cuenta</p>
         </div>
+      </div>
 
-        <div class="register-link">
-          ¿No tienes una cuenta?
-          <a href="#" @click.prevent="showRegisterModal=true">Regístrate aquí</a>
-        </div>
-      </form>
-    </div>
+      <!-- Sección Derecha -->
+      <div class="login-right">
+        <h1 class="login-title">Iniciar Sesión</h1>
 
-    <!-- Modal de Recuperación de Contraseña -->
-    <div v-if="showForgotPassword" class="modal" @click="closeForgotModal">
-      <div class="modal-content" @click.stop>
-        <span class="close-modal" @click="closeForgotModal">&times;</span>
-        <h2 class="modal-title">Recuperar Contraseña</h2>
-
-        <form @submit.prevent="handleForgotPassword">
+        <form class="login-form" @submit.prevent="handleLogin">
           <div class="form-group">
-            <label for="recoveryEmail">Correo Electrónico</label>
-            <input
-              type="email"
-              id="recoveryEmail"
-              v-model="recoveryEmail"
-              required
+            <label for="usuario">Usuario o Email</label>
+            <input 
+              type="text" 
+              id="usuario" 
+              v-model="loginForm.usuario"
+              :class="{ error: errors.usuario }"
+              required 
             />
-            <span v-if="errors.recoveryEmail" class="error-message">{{ errors.recoveryEmail }}</span>
+            <span v-if="errors.usuario" class="error-message">{{ errors.usuario }}</span>
           </div>
 
-          <p style="margin-bottom: 20px; color: var(--gray); font-size: 0.9rem">
-            Ingresa tu correo electrónico y te enviaremos un enlace para
-            restablecer tu contraseña.
-          </p>
-
-          <div v-if="recoveryMessage" :class="recoveryMessageType">
-            {{ recoveryMessage }}
+          <div class="form-group">
+            <label for="contrasena">Contraseña</label>
+            <input 
+              type="password" 
+              id="contrasena" 
+              v-model="loginForm.contrasena"
+              :class="{ error: errors.contrasena }"
+              required 
+            />
+            <span v-if="errors.contrasena" class="error-message">{{ errors.contrasena }}</span>
           </div>
 
-          <button type="submit" class="btn-login">Enviar Instrucciones</button>
+          <div class="form-options">
+            <div class="remember-me">
+              <input 
+                type="checkbox" 
+                id="remember" 
+                v-model="loginForm.remember"
+              />
+              <label for="remember">Recordarme</label>
+            </div>
+            <a href="#" class="forgot-password" @click.prevent="showForgotPassword = true">
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
+
+          <button type="submit" class="btn-login" :disabled="isLoading">
+            {{ isLoading ? 'Iniciando...' : 'Iniciar Sesión' }}
+          </button>
+
+          <div v-if="generalError" class="error-message" style="text-align: center; margin-top: 10px;">
+            {{ generalError }}
+          </div>
+
+          <div class="register-link">
+            ¿No tienes una cuenta?
+            <a href="#" @click.prevent="showRegisterModal=true">Regístrate aquí</a>
+          </div>
         </form>
       </div>
+
+      <!-- Modal de Recuperación de Contraseña -->
+      <div v-if="showForgotPassword" class="modal" @click="closeForgotModal">
+        <div class="modal-content" @click.stop>
+          <span class="close-modal" @click="closeForgotModal">&times;</span>
+          <h2 class="modal-title">Recuperar Contraseña</h2>
+
+          <form @submit.prevent="handleForgotPassword">
+            <div class="form-group">
+              <label for="recoveryEmail">Correo Electrónico</label>
+              <input
+                type="email"
+                id="recoveryEmail"
+                v-model="recoveryEmail"
+                required
+              />
+              <span v-if="errors.recoveryEmail" class="error-message">{{ errors.recoveryEmail }}</span>
+            </div>
+
+            <p style="margin-bottom: 20px; color: var(--gray); font-size: 0.9rem">
+              Ingresa tu correo electrónico y te enviaremos un enlace para
+              restablecer tu contraseña.
+            </p>
+
+            <div v-if="recoveryMessage" :class="recoveryMessageType">
+              {{ recoveryMessage }}
+            </div>
+
+            <button type="submit" class="btn-login">Enviar Instrucciones</button>
+          </form>
+        </div>
+      </div>
+       <!-- Modal de Registro (componente importado) -->
+      <SingIn 
+        :show="showRegisterModal" 
+        @close="showRegisterModal = false" 
+      />
     </div>
-     <!-- Modal de Registro (componente importado) -->
-    <SingIn 
-      :show="showRegisterModal" 
-      @close="showRegisterModal = false" 
-    />
   </div>
 </template>
 
@@ -143,7 +145,9 @@ const recoveryMessageType = ref('success-message')
 
 // Methods
 const goBack = () => {
-  router.push('/')
+  // Recarga la página para limpiar cualquier estado y estilos
+ router.push ('/')
+  
 }
 
 const clearErrors = () => {
@@ -223,8 +227,8 @@ const handleForgotPassword = () => {
 }
 </script>
 
-<style>
-:root {
+<style scoped>
+.login-root {
   --primary-color: #913e3e;
   --secondary-color: #f8dc9e;
   --text-color: #1d3557;
@@ -233,19 +237,10 @@ const handleForgotPassword = () => {
   --success-color: #4caf50;
   --error-color: #f44336;
   --gray: #6c757d;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
-body {
-  height: 100vh;
+  min-height: 100vh;
+  width: 100vw;
   background-color: var(--background-color);
-  overflow: hidden;
+  font-family: "Poppins", sans-serif;
 }
 
 /* CONTENEDOR PRINCIPAL */

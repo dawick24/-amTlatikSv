@@ -1,9 +1,9 @@
 <script setup>
-import SingIn from '@/components/auth/SingIn.vue';
+import Login from '@/components/auth/Login.vue';
 </script>
 
 <template>
-  <SingIn />
+  <Login />
 </template>
 
 <style scoped>

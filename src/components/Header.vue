@@ -76,7 +76,7 @@ function handleMouseLeave() {
     <RouterLink to="/" title="Geolocalización">Geolocalización</RouterLink>
     <RouterLink to="/" title="Calendarización">Calendarización</RouterLink>
     <RouterLink to="/" title="Recetas">Recetas</RouterLink>
-    <RouterLink to="/" title="Historia">Historia</RouterLink>
+    <RouterLink to="/historia" title="Historia">Historia</RouterLink>
     <RouterLink to="/" title="Comunidad">Comunidad</RouterLink>
   </nav>
 </template>

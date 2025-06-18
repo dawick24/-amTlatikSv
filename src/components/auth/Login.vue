@@ -56,7 +56,12 @@
             </a>
           </div>
 
-          <button type="submit" class="btn-login" :disabled="isLoading">
+          <button 
+            type="submit" 
+            class="btn-login" 
+            :disabled="isLoading"
+            @click.prevent="handleLogin" 
+          >
             {{ isLoading ? 'Iniciando...' : 'Iniciar Sesión' }}
           </button>
 
@@ -112,9 +117,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import SingIn from '@/components/auth/SingIn.vue'
+
+const axios = inject('axios');  
 
 
 const router = useRouter()
@@ -173,18 +180,12 @@ const handleLogin = async () => {
   isLoading.value = true
 
   try {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: loginForm.usuario,
-        password: loginForm.contrasena
-      })
-    })
+    const response = await axios.post('/auth/login.php', {
+      email: loginForm.usuario,
+      password: loginForm.contrasena
+    }); 
 
-    const result = await response.json()
+    const result = await response.data
 
     if (!result.success) {
       generalError.value = '❌ ' + result.message
@@ -196,6 +197,7 @@ const handleLogin = async () => {
     localStorage.setItem('isLoggedIn', 'true')
     
     emit('login-success', result.user)
+    router.push('/') 
     
   } catch (error) {
     generalError.value = '❌ Error de conexión con el servidor'

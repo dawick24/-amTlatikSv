@@ -112,7 +112,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, defineProps, defineEmits } from 'vue'
+import { ref, reactive, defineProps, defineEmits, inject } from 'vue'
+const axios = inject('axios');  
 
 const props = defineProps({
   show: Boolean
@@ -215,27 +216,22 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        nombre: form.nombre,
-        apellido: form.apellido,
-        email: form.email || null,
-        telefono: form.telefono,
-        region: form.region,
-        password: form.password
-      })
-    })
-
-    const result = await response.json()
+    const response = await axios.post('/auth/register.php', {
+      nombre: form.nombre,
+      apellido: form.apellido,
+      email: form.email || null,
+      telefono: form.telefono,
+      region: form.region,
+      password: form.password,
+      confirmPassword: form.confirmPassword
+    });  
+    const result = await response.data
 
     if (result.success) {
       message.value = '✅ Registro exitoso. Por favor inicia sesión.'
       messageType.value = 'success-message'
 
+      
       // Limpiar el formulario
       Object.keys(form).forEach(key => {
         form[key] = ''

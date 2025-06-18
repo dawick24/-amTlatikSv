@@ -67,7 +67,7 @@ const selectedIndex = ref(0);
 const recetas = ref([
   {
     nombre: "Pupusas",
-    imagen: "/pupusas.png",
+    imagen: "/pupusas.jpeg",
     ingredientes: [
       "2 tazas de masa de maíz",
       "1 taza de frijoles refritos",
@@ -87,7 +87,7 @@ const recetas = ref([
   },
   {
     nombre: "Tamales",
-    imagen: "/tamales.png",
+    imagen: "/tamales.jpeg",
     ingredientes: [
       "Masa de maíz",
       "Hojas de plátano",
@@ -107,7 +107,7 @@ const recetas = ref([
   },
   {
     nombre: "Empanadas",
-    imagen: "/empanadasleche.png",
+    imagen: "/empanadasleche.jpeg",
     ingredientes: [
       "Masa de maíz",
       "Frijoles refritos",

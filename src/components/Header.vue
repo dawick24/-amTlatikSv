@@ -74,10 +74,10 @@ function handleMouseLeave() {
 
   <nav class="main-nav animate__animated animate__fadeInDown">
     <RouterLink to="/" title="Geolocalización">Geolocalización</RouterLink>
-    <RouterLink to="/" title="Calendarización">Calendarización</RouterLink>
-    <RouterLink to="/" title="Recetas">Recetas</RouterLink>
+    <RouterLink to="/calendarizacion" title="Calendarización">Calendarización</RouterLink>
+    <RouterLink to="/recetas" title="Recetas">Recetas</RouterLink>
     <RouterLink to="/historia" title="Historia">Historia</RouterLink>
-    <RouterLink to="/" title="Comunidad">Comunidad</RouterLink>
+    <RouterLink to="/comunidad" title="Comunidad">Comunidad</RouterLink>
   </nav>
 </template>
 

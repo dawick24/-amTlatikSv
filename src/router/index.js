@@ -14,9 +14,24 @@ const router = createRouter({
       component: () => import('../views/auth/LoginView.vue')
     },
     {
+      path: '/calendarizacion',
+      name: 'calendarizacion',
+      component: () => import('../views/CalendarizacionView.vue')
+    },
+    {
+      path: '/recetas',
+      name: 'recetas',
+      component: () => import('../views/RecetasView.vue')
+    },
+    {
       path: '/historia',
       name: 'historia',
       component: () => import('../views/HistoriaView.vue')
+    },
+    {
+      path: '/comunidad',
+      name: 'comunidad',
+      component: () => import('../views/ComunidadView.vue')
     }
   ],
 })

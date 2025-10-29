@@ -188,25 +188,36 @@ function searchPlaces() {
   });
 }
 
+// 🔧 Corrección principal: centramos el mapa después de que Google Maps esté listo
 onMounted(async () => {
   try {
     const userLocation = await getUserLocation();
+    console.log("Tu ubicación actual es:", userLocation); // 👈 muestra tus coordenadas reales
     center.value = userLocation;
 
-    if (window.google && window.google.maps) {
-      infoWindow.value = new window.google.maps.InfoWindow();
-      userMarkerOptions.value = {
-        position: userLocation,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#4285F4',
-          fillOpacity: 1,
-          strokeWeight: 2,
-          strokeColor: 'white',
-        },
-      };
-    }
+    // Esperar a que Google Maps cargue antes de mover el centro
+    const checkMap = setInterval(() => {
+      if (mapRef.value?.map && window.google && window.google.maps) {
+        clearInterval(checkMap);
+
+        infoWindow.value = new window.google.maps.InfoWindow();
+        userMarkerOptions.value = {
+          position: userLocation,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeWeight: 2,
+            strokeColor: 'white',
+          },
+        };
+
+        // 🔹 Mover mapa al punto real del usuario
+        mapRef.value.map.setCenter(userLocation);
+        mapRef.value.map.setZoom(17);
+      }
+    }, 500);
   } catch (error) {
     console.error('Error getting user location:', error);
   }

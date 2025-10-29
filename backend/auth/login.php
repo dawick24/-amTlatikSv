@@ -28,15 +28,15 @@ if (empty($data['email']) || empty($data['password'])) {
 }
 
 try {
-    // Buscar usuario por correo
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = ?");
+    // Buscar usuario por email
+    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE email = ?");
     $stmt->execute([$data['email']]);
     $user = $stmt->fetch();
 
     if ($user && password_verify($data['password'], $user['password'])) {
         // Iniciar sesión
         $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_email'] = $user['correo'];
+        $_SESSION['user_email'] = $user['email'];
         
         $response = [
             'success' => true,
@@ -44,7 +44,7 @@ try {
             'user' => [
                 'id' => $user['id'],
                 'nombre' => $user['nombre'],
-                'correo' => $user['correo'],
+                'email' => $user['email'],
                 'telefono' => $user['telefono'] ?? null,
                 'region' => $user['region'] ?? null
             ]

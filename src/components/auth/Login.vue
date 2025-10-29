@@ -32,13 +32,22 @@
 
           <div class="form-group">
             <label for="contrasena">Contraseña</label>
-            <input 
-              type="password" 
-              id="contrasena" 
-              v-model="loginForm.contrasena"
-              :class="{ error: errors.contrasena }"
-              required 
-            />
+            <div class="password-input-container">
+              <input 
+                :type="showPassword ? 'text' : 'password'" 
+                id="contrasena" 
+                v-model="loginForm.contrasena"
+                :class="{ error: errors.contrasena }"
+                required 
+              />
+              <button 
+                type="button" 
+                class="password-toggle"
+                @click="showPassword = !showPassword"
+              >
+                {{ showPassword ? '🙈 Ocultar' : '👁️ Mostrar' }}
+              </button>
+            </div>
             <span v-if="errors.contrasena" class="error-message">{{ errors.contrasena }}</span>
           </div>
 
@@ -117,12 +126,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, inject } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/firebase';
 import SingIn from '@/components/auth/SingIn.vue'
-
-const axios = inject('axios');  
-
 
 const router = useRouter()
 const showRegisterModal = ref(false) 
@@ -150,11 +158,12 @@ const recoveryEmail = ref('')
 const recoveryMessage = ref('')
 const recoveryMessageType = ref('success-message')
 
+// NUEVO: Variable para mostrar/ocultar contraseña
+const showPassword = ref(false)
+
 // Methods
 const goBack = () => {
-  // Recarga la página para limpiar cualquier estado y estilos
- router.push ('/')
-  
+  router.push('/')
 }
 
 const clearErrors = () => {
@@ -178,31 +187,46 @@ const handleLogin = async () => {
   }
 
   isLoading.value = true
+  generalError.value = ''
 
   try {
-    const response = await axios.post('/auth/login.php', {
-      email: loginForm.usuario,
-      password: loginForm.contrasena
-    }); 
+    // 🔥 NUEVO: Login con Firebase
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      loginForm.usuario, // email
+      loginForm.contrasena
+    );
 
-    const result = await response.data
-
-    if (!result.success) {
-      generalError.value = '❌ ' + result.message
-      return
-    }
-
-    // Guardar información del usuario
-    localStorage.setItem('user', JSON.stringify(result.user))
-    localStorage.setItem('isLoggedIn', 'true')
+    const user = userCredential.user;
     
-    emit('login-success', result.user)
-    router.push('/') 
+    // Guardar información del usuario
+    localStorage.setItem('user', JSON.stringify({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName
+    }));
+    localStorage.setItem('isLoggedIn', 'true');
+    
+    emit('login-success', user);
+    router.push('/');
     
   } catch (error) {
-    generalError.value = '❌ Error de conexión con el servidor'
+    console.error('Error de login:', error);
+    
+    // 🔥 NUEVO: Manejo de errores de Firebase
+    if (error.code === 'auth/invalid-credential') {
+      generalError.value = '❌ Email o contraseña incorrectos';
+    } else if (error.code === 'auth/user-not-found') {
+      generalError.value = '❌ Usuario no encontrado';
+    } else if (error.code === 'auth/wrong-password') {
+      generalError.value = '❌ Contraseña incorrecta';
+    } else if (error.code === 'auth/too-many-requests') {
+      generalError.value = '❌ Demasiados intentos. Intenta más tarde';
+    } else {
+      generalError.value = '❌ Error al iniciar sesión';
+    }
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
@@ -467,6 +491,37 @@ const handleForgotPassword = () => {
   text-decoration: underline;
 }
 
+/* NUEVO: Estilos para el input de contraseña con botón FUERA del cuadro */
+.password-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.password-input-container input {
+  flex: 1;
+}
+
+.password-toggle {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+  height: 42px; /* Misma altura que el input */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.password-toggle:hover {
+  background: #7a3434;
+}
+
 /* MODAL DE RECUPERACIÓN */
 .modal {
   position: fixed;
@@ -526,6 +581,17 @@ const handleForgotPassword = () => {
 
   .modal-content {
     padding: 20px;
+  }
+
+  /* Ajuste responsive para el botón de contraseña */
+  .password-input-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .password-toggle {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

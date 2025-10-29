@@ -1,30 +1,91 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { auth, db } from '@/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import UserProfile from './UserProfile.vue';
 
 const router = useRouter();
 const isLoggedIn = ref(false);
 const user = ref(null);
+const userData = ref(null);
 const showMenu = ref(false);
+const showProfileModal = ref(false);
+const showLogoutConfirm = ref(false);
 let hoverTimeout;
-  
+
+// Verificar autenticación con Firebase
 onMounted(() => {
-  const savedUser = localStorage.getItem('user');
-  const savedLogin = localStorage.getItem('isLoggedIn') === 'true';
-  if (savedLogin && savedUser) {
-    user.value = JSON.parse(savedUser);
-    isLoggedIn.value = true;
-  }
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      isLoggedIn.value = true;
+      user.value = firebaseUser;
+      
+      // Cargar datos adicionales de Firestore
+      try {
+        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+        if (userDoc.exists()) {
+          userData.value = userDoc.data();
+        }
+      } catch (error) {
+        console.error('Error cargando datos del usuario:', error);
+      }
+    } else {
+      isLoggedIn.value = false;
+      user.value = null;
+      userData.value = null;
+    }
+  });
 });
 
+// Computed para mostrar nombre y avatar
+const displayName = computed(() => {
+  if (userData.value) {
+    return userData.value.nombre || user.value?.displayName || 'Usuario';
+  }
+  return user.value?.displayName || 'Usuario';
+});
+
+const userAvatar = computed(() => {
+  return userData.value?.avatar || user.value?.photoURL || '';
+});
+
+// Mostrar modal de confirmación
+function confirmLogout() {
+  showLogoutConfirm.value = true;
+  showMenu.value = false;
+}
+
+// Confirmar cierre de sesión
 function handleLogout() {
-  localStorage.removeItem('user');
-  localStorage.setItem('isLoggedIn', 'false');
-  location.reload();
+  signOut(auth).then(() => {
+    isLoggedIn.value = false;
+    user.value = null;
+    userData.value = null;
+    showLogoutConfirm.value = false;
+    // Recargar la página para ir al menú principal
+    window.location.href = '/';
+  }).catch((error) => {
+    console.error('Error cerrando sesión:', error);
+    alert('Error al cerrar sesión. Por favor intenta nuevamente.');
+  });
+}
+
+// Cancelar cierre de sesión
+function cancelLogout() {
+  showLogoutConfirm.value = false;
 }
 
 function goToLogin() {
-  router.push('/auth/login');
+  if (!isLoggedIn.value) {
+    router.push('/auth/login');
+  }
+}
+
+function openProfile() {
+  showProfileModal.value = true;
+  showMenu.value = false;
 }
 
 function handleMouseEnter() {
@@ -52,22 +113,63 @@ function handleMouseLeave() {
       @mouseleave="handleMouseLeave"
     >
       <button class="auth-btn animate__animated animate__fadeIn" @click="goToLogin">
-        <i class="fas fa-user"></i>
-        {{ isLoggedIn ? user?.nombre : 'Iniciar Sesión' }}
+        <div class="user-avatar-small" v-if="isLoggedIn && userAvatar">
+          <img :src="userAvatar" alt="Avatar" />
+        </div>
+        <div class="user-avatar-small placeholder" v-else-if="isLoggedIn">
+          {{ displayName.charAt(0) }}
+        </div>
+        <i class="fas fa-user" v-else></i>
+        {{ isLoggedIn ? displayName : 'Iniciar Sesión' }}
       </button>
 
-      <div v-show="showMenu" class="login-menu">
-        <p v-if="isLoggedIn" style="margin: 0 0 8px 0;">
-          Hola, <strong>{{ user?.nombre }}</strong>
-        </p>
-        <button
-          v-if="isLoggedIn"
-          @click="handleLogout"
-          style="background:#fff; color:#ff6f61; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;"
-        >
-          Cerrar sesión
-        </button>
-        <p v-else>Bienvenido! Por favor inicia sesión.</p>
+      <div v-show="showMenu && isLoggedIn" class="login-menu">
+        <div class="user-info-menu">
+          <div class="user-avatar-menu" v-if="userAvatar">
+            <img :src="userAvatar" alt="Avatar" />
+          </div>
+          <div class="user-avatar-menu placeholder" v-else>
+            {{ displayName.charAt(0) }}
+          </div>
+          <div class="user-details">
+            <p style="margin: 0 0 5px 0;">
+              <strong>{{ displayName }}</strong>
+            </p>
+            <p style="margin: 0; font-size: 0.8rem; color: #f0f0f0;">
+              {{ userData?.email || user?.email }}
+            </p>
+          </div>
+        </div>
+        
+        <div class="menu-actions">
+          <button @click="openProfile" class="menu-btn profile-btn">
+            👤 Mi Perfil
+          </button>
+          <button @click="confirmLogout" class="menu-btn logout-btn">
+            🚪 Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Perfil -->
+    <UserProfile 
+      v-if="isLoggedIn"
+      :show="showProfileModal" 
+      :user="user"
+      @close="showProfileModal = false"
+    />
+
+    <!-- Modal de Confirmación de Cierre de Sesión -->
+    <div v-if="showLogoutConfirm" class="logout-confirm-modal" @click.self="cancelLogout">
+      <div class="logout-confirm-content">
+        <div class="logout-icon">🚪</div>
+        <h3>¿Estás seguro de cerrar sesión?</h3>
+        <p>Serás redirigido a la página principal</p>
+        <div class="logout-actions">
+          <button @click="cancelLogout" class="btn-cancel">Cancelar</button>
+          <button @click="handleLogout" class="btn-confirm">Sí, Cerrar Sesión</button>
+        </div>
       </div>
     </div>
   </header>
@@ -135,6 +237,9 @@ header.glass-header {
   transition: background 0.3s ease;
   animation: pulseBtn 3s infinite;
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .auth-btn:hover {
@@ -153,26 +258,209 @@ header.glass-header {
   }
 }
 
-button#loginBtn[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 120%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ff6f61;
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 5px;
-  white-space: nowrap;
-  font-size: 0.85rem;
-  opacity: 0.9;
-  pointer-events: none;
-  z-index: 200;
+.user-avatar-small {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-header.glass-header.scrolled {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+.user-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-avatar-small.placeholder {
   background: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.login-container {
+  position: relative;
+}
+
+.login-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: rgba(255, 111, 97, 0.95);
+  padding: 15px;
+  border-radius: 10px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 150;
+  transition: opacity 0.3s ease;
+  min-width: 200px;
+}
+
+.user-info-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-avatar-menu {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+}
+
+.user-avatar-menu img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-avatar-menu.placeholder {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.menu-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.profile-btn {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.logout-btn {
+  background: rgba(220, 38, 38, 0.7);
+}
+
+.logout-btn:hover {
+  background: rgba(220, 38, 38, 0.9);
+}
+
+.logout-confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.logout-confirm-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.logout-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.logout-confirm-content h3 {
+  color: #ff6f61;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.logout-confirm-content p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.logout-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-cancel {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+  flex: 1;
+}
+
+.btn-cancel:hover {
+  background: #4b5563;
+}
+
+.btn-confirm {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+  flex: 1;
+}
+
+.btn-confirm:hover {
+  background: #b91c1c;
 }
 
 nav.main-nav {
@@ -220,32 +508,25 @@ nav.main-nav a:hover::after,
 nav.main-nav a:focus::after {
   width: 100%;
 }
-.login-container {
-  position: relative;
-}
 
-.login-menu {
-  position: absolute;
-  top: 110%;
-  right: 0;
-  background: rgba(255, 111, 97, 0.95);
-  padding: 10px 15px;
-  border-radius: 10px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 150;
-  transition: opacity 0.3s ease;
-}
-/* NUEVO estilo para el menú desplegable */
-#loginMenu {
-  position: absolute;
-  background: rgba(255, 111, 97, 0.95);
-  padding: 10px 15px;
-  border-radius: 10px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 150;
-  display: none;
-  transition: opacity 0.3s ease;
+@media (max-width: 768px) {
+  .login-menu {
+    min-width: 180px;
+  }
+  
+  .auth-btn {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .user-avatar-small {
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+  }
+  
+  .logout-actions {
+    flex-direction: column;
+  }
 }
 </style>
